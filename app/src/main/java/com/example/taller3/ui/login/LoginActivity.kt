@@ -29,7 +29,7 @@ class LoginActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        auth = Firebase.auth
+        //auth = Firebase.auth
      binding = ActivityLoginBinding.inflate(layoutInflater)
      setContentView(binding.root)
 
@@ -97,7 +97,23 @@ class LoginActivity : AppCompatActivity() {
             }
 
         }
+        login.setOnClickListener {
+            loading.visibility = View.VISIBLE
+            val usernameString = username.text.toString()
+            val passwordString = password.text.toString()
+            // Replace the Firebase authentication code with your custom login implementation
+            // For testing purposes, you can simply compare the entered username and password with a hardcoded value
+            if (usernameString == "test" && passwordString == "password") {
+                val loggedInUser = LoggedInUserView(usernameString)
+                updateUiWithUser(loggedInUser)
+                startActivity(Intent(baseContext, MenuActivity::class.java))
+            } else {
+                showLoginFailed(R.string.login_failed)
+            }
+            loading.visibility = View.GONE
+        }
 
+        /*
         login.setOnClickListener {
             loading.visibility = View.VISIBLE
             val usernameString = username.text.toString()
@@ -118,6 +134,7 @@ class LoginActivity : AppCompatActivity() {
                 }
             }
         }
+         */
         binding.Registrarse?.setOnClickListener {
             startActivity(Intent(baseContext,
                 RegisterActivity::class.java))
