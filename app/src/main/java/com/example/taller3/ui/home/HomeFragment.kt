@@ -1,6 +1,7 @@
 package com.example.taller3.ui.home
 
 import android.content.ContentValues.TAG
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -11,6 +12,7 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.example.taller3.MapsActivity
 import com.example.taller3.data.model.LoggedInUser
 import com.example.taller3.databinding.FragmentHomeBinding
 import com.google.firebase.firestore.ktx.firestore
@@ -64,7 +66,9 @@ class HomeFragment : Fragment() {
             // Initialize Adapter
             val userAdapter = UserAdapter(userList, object: UserAdapter.OnItemClickListener {
                 override fun onItemClick(user: LoggedInUser) {
-                    // Aquí puedes manejar el evento de click en el botón Show Location
+                    val intent = Intent(activity, MapsActivity::class.java)
+                    intent.putExtra("user", user)
+                    startActivity(intent)
                 }
             })
 
