@@ -29,14 +29,24 @@ class LoginActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        //auth = Firebase.auth
-     binding = ActivityLoginBinding.inflate(layoutInflater)
-     setContentView(binding.root)
+        auth = Firebase.auth
+         binding = ActivityLoginBinding.inflate(layoutInflater)
+         setContentView(binding.root)
 
         val username = binding.username
         val password = binding.password
         val login = binding.login
         val loading = binding.loading
+
+        // Step 1: Check if the user is already logged in
+        if (auth.currentUser != null) {
+            val loggedInUser = auth.currentUser?.email?.let { LoggedInUserView(it) }
+            if (loggedInUser != null) {
+                updateUiWithUser(loggedInUser)
+                startActivity(Intent(baseContext, MenuActivity::class.java))
+                finish() // Optional: Prevent the user from going back to the login screen
+            }
+        }
 
         loginViewModel = ViewModelProvider(this, LoginViewModelFactory())
             .get(LoginViewModel::class.java)
@@ -96,8 +106,9 @@ class LoginActivity : AppCompatActivity() {
                 false
             }
 
+
         }
-        login.setOnClickListener {
+        /*login.setOnClickListener {
             loading.visibility = View.VISIBLE
             val usernameString = username.text.toString()
             val passwordString = password.text.toString()
@@ -111,9 +122,9 @@ class LoginActivity : AppCompatActivity() {
                 showLoginFailed(R.string.login_failed)
             }
             loading.visibility = View.GONE
-        }
+        }*/
 
-        /*
+
         login.setOnClickListener {
             loading.visibility = View.VISIBLE
             val usernameString = username.text.toString()
@@ -134,7 +145,7 @@ class LoginActivity : AppCompatActivity() {
                 }
             }
         }
-         */
+
         binding.Registrarse?.setOnClickListener {
             startActivity(Intent(baseContext,
                 RegisterActivity::class.java))
