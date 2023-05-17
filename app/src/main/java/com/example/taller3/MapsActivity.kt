@@ -64,10 +64,11 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
 
-        if(user != null)
-        {
+        if(user != null && user!!.userId.isNotEmpty()) {
             startListeningForUserUpdates(user!!.userId)
         }
+
+        Log.d("MapsActivity", "onCreate: ${user?.userId}")
 
         checkLocationEnabled()
     }

@@ -4,10 +4,12 @@ import android.content.ContentValues.TAG
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
+
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -33,6 +35,12 @@ class HomeFragment : Fragment() {
     private lateinit var loggedInUserId: String
 
 
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        Log.i("HomeFragment", "Fetching users...")
+
+    }
+
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -54,10 +62,14 @@ class HomeFragment : Fragment() {
         val mockUser = LoggedInUser("oZFEZbmVj6ZKPiBcVoEmxKfFw4R2", "John Doe", "John Doe", 4.6483,-74.0698, "https://media.istockphoto.com/id/529981123/photo/snuffling-dog.jpg?s=612x612&w=0&k=20&c=CN7cZIy6_f8xEVF17EJMEwmh00_InQblMcdIeSLXpAw=", true)
         userList.add(mockUser)*/
 
+        Log.i("HomeFragment", "Fetching users...")
         // Initialize Adapter
         val userAdapter = UserAdapter(userList, object: UserAdapter.OnItemClickListener {
             override fun onItemClick(user: LoggedInUser) {
-                // Aquí puedes manejar el evento de click en el botón Show Location
+                Log.i("HomeFragment", "User clicked: $user")
+                val intent = Intent(activity, MapsActivity::class.java)
+                intent.putExtra("user", user)
+                startActivity(intent)
             }
         })
 

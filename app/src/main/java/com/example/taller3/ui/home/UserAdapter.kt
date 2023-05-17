@@ -29,12 +29,12 @@ class UserAdapter(private val userList: List<LoggedInUser>, private val itemClic
 
     override fun onBindViewHolder(holder: UserViewHolder, position: Int) {
         val currentUser = userList[position]
-        // Aquí puedes cargar la imagen del usuario en el ImageView utilizando una biblioteca como Glide o Picasso
         holder.userName.text = currentUser.displayName
         holder.btnShowLocation.setOnClickListener {
             itemClickListener.onItemClick(currentUser)
         }
     }
+
     override fun getItemCount() = userList.size
 }
 
