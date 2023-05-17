@@ -154,7 +154,6 @@ class LoginActivity : AppCompatActivity() {
     }
 
 
-
     private fun updateUiWithUser(model: LoggedInUserView) {
         val welcome = getString(R.string.welcome)
         val displayName = model.displayName
@@ -168,6 +167,10 @@ class LoginActivity : AppCompatActivity() {
 
     private fun showLoginFailed(@StringRes errorString: Int) {
         Toast.makeText(applicationContext, errorString, Toast.LENGTH_SHORT).show()
+    }
+
+    fun getAuth(): FirebaseAuth {
+        return auth
     }
 
 }

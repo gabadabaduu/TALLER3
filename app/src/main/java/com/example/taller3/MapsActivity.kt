@@ -1,6 +1,8 @@
 package com.example.taller3
 
+import android.app.Activity
 import android.app.AlertDialog
+import android.content.ContentValues.TAG
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -10,6 +12,7 @@ import android.net.Uri
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.provider.Settings
+import android.util.Log
 import androidx.core.app.ActivityCompat
 import com.example.taller3.data.model.LoggedInUser
 
@@ -20,8 +23,12 @@ import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
 import com.example.taller3.databinding.ActivityMapsBinding
+import com.example.taller3.ui.login.LoginActivity
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
+import com.google.android.gms.maps.model.BitmapDescriptorFactory
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.auth.User
 import org.json.JSONArray
 import org.json.JSONObject
@@ -35,6 +42,11 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
     // Variable to hold user data
     private var user: LoggedInUser? = null
+
+    val auth = FirebaseAuth.getInstance()
+
+    private val db = FirebaseFirestore.getInstance()
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -51,6 +63,11 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         mapFragment.getMapAsync(this)
 
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
+
+        if(user != null)
+        {
+            startListeningForUserUpdates(user!!.userId)
+        }
 
         checkLocationEnabled()
     }
@@ -101,13 +118,20 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         // Add a marker for the user
         if (user != null) {
             val userLatLng = LatLng(user!!.lat, user!!.long)
-            mMap.addMarker(MarkerOptions().position(userLatLng).title(user!!.displayName))
+            val markerOptions = MarkerOptions()
+                .position(userLatLng)
+                .title(user!!.displayName)
+                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE))
+            mMap.addMarker(markerOptions)
             mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(userLatLng, 12f))
         }
 
         getLastKnownLocation()
         addMarkersFromJson()
     }
+
+
+
 
     private fun getLastKnownLocation() {
         if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
@@ -120,6 +144,8 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                 val currentLatLng = LatLng(location.latitude, location.longitude)
                 mMap.addMarker(MarkerOptions().position(currentLatLng).title("Mi ubicación"))
                 mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentLatLng, 12f))
+                saveUserLocationInFirestore(auth.currentUser!!.uid, location)
+
             } else {
                 // Handle the situation when the location is null (e.g., the user has disabled location services)
             }
@@ -185,6 +211,42 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         val uri = Uri.fromParts("package", packageName, null)
         intent.data = uri
         startActivity(intent)
+    }
+
+    private fun startListeningForUserUpdates(userId: String) {
+        val docRef = db.collection("users").document(userId)
+        docRef.addSnapshotListener { snapshot, e ->
+            if (e != null) {
+                Log.w(TAG, "Listen failed.", e)
+                return@addSnapshotListener
+            }
+
+            if (snapshot != null && snapshot.exists()) {
+                Log.d(TAG, "Current data: ${snapshot.data}")
+                val lat = snapshot.getDouble("lat") ?: return@addSnapshotListener
+                val long = snapshot.getDouble("long") ?: return@addSnapshotListener
+                val displayName = snapshot.getString("displayName") ?: return@addSnapshotListener
+                updateMarkerForUser(userId, LatLng(lat, long), displayName)
+            } else {
+                Log.d(TAG, "Current data: null")
+            }
+        }
+    }
+
+
+    private fun updateMarkerForUser(userId: String, latLng: LatLng, displayName: String) {
+
+    }
+
+
+
+    private fun saveUserLocationInFirestore(userId: String, location: Location) {
+        val userDoc = db.collection("users").document(userId)
+        userDoc.update("lat", location.latitude, "long", location.longitude)
+            .addOnSuccessListener { Log.d(TAG, "User location successfully updated!") }
+            .addOnFailureListener { e ->
+                Log.w(TAG, "Error updating user location", e)
+            }
     }
 
 }

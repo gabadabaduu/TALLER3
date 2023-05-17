@@ -15,6 +15,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.taller3.MapsActivity
 import com.example.taller3.data.model.LoggedInUser
 import com.example.taller3.databinding.FragmentHomeBinding
+import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 
@@ -28,6 +29,8 @@ class HomeFragment : Fragment() {
     private val userList = mutableListOf<LoggedInUser>()
 
     private val db = Firebase.firestore
+
+    private lateinit var loggedInUserId: String
 
 
 
@@ -61,8 +64,11 @@ class HomeFragment : Fragment() {
         // Bind Adapter to RecyclerView
         recyclerView.adapter = userAdapter
 
+        loggedInUserId = Firebase.auth.currentUser?.uid.toString()
+
         // Fetch user data
-        fetchUsers { userList ->
+        fetchUsers(loggedInUserId!!)
+            { userList ->
             // Initialize Adapter
             val userAdapter = UserAdapter(userList, object: UserAdapter.OnItemClickListener {
                 override fun onItemClick(user: LoggedInUser) {
@@ -80,12 +86,14 @@ class HomeFragment : Fragment() {
         return root
     }
 
-    private fun fetchUsers(onUsersFetched: (List<LoggedInUser>) -> Unit) {
+    private fun fetchUsers(loggedInUserId: String, onUsersFetched: (List<LoggedInUser>) -> Unit) {
         db.collection("users")
             .get()
             .addOnSuccessListener { result ->
                 val users = result.mapNotNull { document ->
                     LoggedInUser.fromFirebaseDoc(document)
+                }.filter { user ->
+                    user.userId != loggedInUserId
                 }
                 onUsersFetched(users)
             }

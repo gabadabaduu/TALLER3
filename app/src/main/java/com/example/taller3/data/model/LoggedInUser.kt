@@ -2,7 +2,9 @@ package com.example.taller3.data.model
 
 import android.os.Parcel
 import android.os.Parcelable
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.DocumentSnapshot
+
 
 data class LoggedInUser(
     val userId: String,
