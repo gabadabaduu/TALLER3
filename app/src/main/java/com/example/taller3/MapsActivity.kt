@@ -25,6 +25,8 @@ import com.google.android.gms.maps.model.MarkerOptions
 import com.example.taller3.databinding.ActivityMapsBinding
 import com.example.taller3.ui.login.LoginActivity
 import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationListener
+import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.firebase.auth.FirebaseAuth
@@ -39,11 +41,20 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
     private lateinit var binding: ActivityMapsBinding
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private val LOCATION_PERMISSION_REQUEST_CODE = 1
+    private lateinit var locationListener: LocationListener
+
+
+    // Add these lines to the class
+    private lateinit var locationUpdateRunnable: Runnable
+
 
     // Variable to hold user data
     private var user: LoggedInUser? = null
 
     val auth = FirebaseAuth.getInstance()
+
+    private lateinit var locationRequest: LocationRequest
+
 
     private val db = FirebaseFirestore.getInstance()
 
@@ -63,6 +74,12 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         mapFragment.getMapAsync(this)
 
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
+
+        // Initialize location request
+        locationRequest = LocationRequest.Builder(1000)
+            .setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY)
+            .build()
+
 
         if(user != null && user!!.userId.isNotEmpty()) {
             startListeningForUserUpdates(user!!.userId)
@@ -129,7 +146,28 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
         getLastKnownLocation()
         addMarkersFromJson()
+
+        // Initialize location listener
+        locationListener = LocationListener { location ->
+            val currentLatLng = LatLng(location.latitude, location.longitude)
+            mMap.clear() // Remove existing markers
+            mMap.addMarker(MarkerOptions().position(currentLatLng).title("Mi ubicación"))
+            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentLatLng, 12f))
+            if(user != null && user!!.userId.isNotEmpty()) {
+                saveUserLocationInFirestore(user!!.userId, location)
+            }
+            saveUserLocationInFirestore(auth.currentUser!!.uid, location)
+            addMarkersFromJson()
+        }
+
+        // Request location updates
+        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, arrayOf(android.Manifest.permission.ACCESS_FINE_LOCATION), LOCATION_PERMISSION_REQUEST_CODE)
+            return
+        }
+        fusedLocationClient.requestLocationUpdates(locationRequest, locationListener, null)
     }
+
 
 
 
