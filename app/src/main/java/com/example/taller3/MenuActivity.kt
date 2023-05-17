@@ -30,6 +30,8 @@ class MenuActivity : AppCompatActivity() {
                 .setAction("Action", null).show()
             startActivity(Intent(baseContext,MapsActivity::class.java))
         }
+
+
         val drawerLayout: DrawerLayout = binding.drawerLayout
         val navView: NavigationView = binding.navView
         val navController = findNavController(R.id.nav_host_fragment_content_menu)

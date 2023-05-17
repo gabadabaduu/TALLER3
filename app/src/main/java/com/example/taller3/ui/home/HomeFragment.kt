@@ -35,6 +35,7 @@ class HomeFragment : Fragment() {
     private lateinit var loggedInUserId: String
 
 
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         Log.i("HomeFragment", "Fetching users...")
